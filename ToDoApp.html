@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+      <title>TaskManager</title>
+
+<body class="bg-linear-to-r/srgb from-indigo-500 to-teal-400">
+  <p style="font-size:60px; text-align:center;font-style:italic;" class="italic-text">TaskList</p>
+  <div id="app" style="text-align:center ;">
+  <div id="app" style="text-align:center ;">
+  <select
+    v-model="newCategory"
+    class="border border-indigo-400 rounded-md px-3 py-2 bg-white text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    style="font-size:18px; font-style:italic; margin-bottom:10px;"
+  >
+    <option disabled value="">Select category</option>
+    <option value="work" class="text-blue-600">Work</option>
+    <option value="shopping" class="text-pink-600">Shopping</option>
+    <option value="duty" class="text-green-600">Duty</option>
+  </select>
+  <br>
+<textarea
+  placeholder="enter your tasks"
+  v-model="newTask"
+  class="w-42 rounded-md px-3 py-2 bg-gradient-to-r from-indigo-200 to-teal-100 border-2 border-indigo-400 text-indigo-800 placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 italic text-base shadow-md resize-none transition"
+></textarea>  <br>
+  <button @click="addTask" class="mr-2 w-30;w-full cursor-pointer rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 sm:w-auto dark:disabled:bg-indigo-800 dark:disabled:text-indigo-400">Add</button>
+  <button @click="completedTask"  class="w-30;w-full cursor-pointer rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 sm:w-auto dark:disabled:bg-indigo-800 dark:disabled:text-indigo-400">All Done</button>
+<p style="font-size:24px; font-style:italic; text-align:center;">
+  Task Counter: {{ incompleteCount }}
+  <br>
+
+<input
+  type="date"
+  id="start"
+  name="trip-start"
+  v-model="newDate"
+  min="2018-01-01"
+  max="2025-12-31"
+  class="border border-indigo-400 rounded-md px-3 py-2 bg-white text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+/>
+
+<div style="margin-bottom: 10px;">
+  <label for="priority" class="text-indigo-700 font-semibold" style="font-size:18px; font-style:italic;">Priority:</label>
+  <select
+    id="priority"
+    v-model="newPriority"
+    class="border border-indigo-400 rounded-md px-3 py-2 bg-white text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    style="font-size:18px; font-style:italic;"
+  >
+    <option disabled value="">Select</option>
+    <option value="easy" class="text-green-600">Easy</option>
+    <option value="medium" class="text-orange-500">Medium</option>
+    <option value="hard" class="text-red-600">Hard</option>
+  </select>
+</div>
+
+
+
+<div style="display:flex; justify-content:space-between; margin: 40px ;">
+  <p style="font-size:25px; margin:0; text-align:left; flex:1;">Pending</p>
+  <p style="font-size:25px; margin:0; text-align:right; flex:1;">Completed</p>
+</div>
+
+<label for="site-search" class="text-indigo-700 font-semibold" style="font-size:24px;">Search for task:</label>
+<input
+  type="search"
+  id="site-search"
+  name="q"
+  v-model="searchQuery"
+  class="border border-indigo-400 rounded-md px-3 py-2 bg-white text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+/>
+<input type="search" id="site-search" name="q" v-model="searchQuery" />
+<div style="display:flex; justify-content:space-between;">
+  <ul style="text-align:left;">
+    <li v-for="task in filteredTasks.filter(task => !task.completed)" :key="task.id">
+      <input type="checkbox" v-model="task.completed"/>
+      <span style="font-style:italic; font-size:30px;">{{ task.text }}</span>
+      <span :style="{
+        color: task.priority === 'hard' ? 'red' : task.priority === 'medium' ? 'orange' : 'green',
+        fontWeight: 'bold',
+        marginLeft: '10px'
+      }">
+        [{{ task.priority }}]
+      </span>
+      <span style="margin-left:10px; font-size:24px; color:#555;">
+  [{{ task.category }}]
+</span>
+      <span style="margin-left:10px; font-size:18px; color:#333;">
+      {{ task.date }}
+    </span>
+      <button @click="removeTask(task)" class="mr-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded transition">Remove</button>
+      <button @click="editTask(task)" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded transition">Edit</button>
+    </li>
+  </ul>
+
+  <ul style="text-align: right;">
+    <li v-for="task in filteredTasks.filter(task => task.completed)" :key="task.id">
+      <input type="checkbox" v-model="task.completed"/>
+      <span style="text-decoration: line-through; font-style:italic; font-size:30px;">{{ task.text }}</span>
+      <span :style="{
+        color: task.priority === 'hard' ? 'red' : task.priority === 'medium' ? 'orange' : 'green',
+        fontWeight: 'bold',
+        marginLeft: '10px',
+        fontStyle: 'italic'
+      }">
+        [{{ task.priority }}]
+      </span>
+      <span style="margin-left:10px; font-size:18px; color:#555; font-style: italic;">
+        [{{ task.category }}]
+      </span>
+      <span style="margin-left:10px; font-size:18px; color:#333; font-style: italic;">
+        {{ task.date }}
+      </span>
+    </li>
+  </ul>
+</div>
+</body>
+
+<script>
+  const app = Vue.createApp({ 
+    data() {
+      return {
+        newTask: '',
+        newPriority: '',
+        newDate:'',
+        newCategory:'',
+        tasks:[],
+        searchQuery: ''
+      }
+    },
+    computed:{
+      incompleteCount(){
+        return this.tasks.filter(task => !task.completed).length;
+      },
+      completedCount(){
+        return this.tasks.filter(task => task.completed).length;
+      },
+      filteredTasks() {
+    if (!this.searchQuery.trim()) {
+      return this.tasks;
+    }
+    return this.tasks.filter(task =>
+      task.text.toLowerCase().includes(this.searchQuery.trim().toLowerCase())
+  );
+      },
+    },
+    methods: {
+      addTask() {
+        if(!this.newCategory){
+          alert('Please select a category!')
+          return;
+        }
+        if (this.newTask.trim() && this.newPriority) {
+          const newId = Date.now() + Math.random();
+          this.tasks.push({ id: newId, text: this.newTask.trim(), completed: false, priority: this.newPriority,date: this.newDate,category:this.newCategory });
+          this.newTask = '';
+          this.newPriority = '';
+          this.newCategory='';
+          this.newDate='';
+          const list = document.querySelector('#app ul');
+          if (list) {
+            list.style.display = 'flex';
+            list.style.flexDirection = 'column';
+            list.style.alignItems = 'center';
+            list.style.fontStyle = 'italic';
+            list.style.fontSize = '25px'; 
+          }
+        } else {
+          alert('Please enter a task,select its priority and the date!');
+        }
+        },
+      removeTask(task) {    
+        const idx = this.tasks.indexOf(task);
+        if (idx > -1) {
+          this.tasks.splice(idx, 1);
+         }
+        },
+      completedTask() {
+        this.tasks.forEach(task => task.completed = true);
+        alert('All tasks marked as completed!');
+      },
+      TaskCounter() {
+        return this.tasks.length;
+      },
+      editTask(task) {
+        console.log('Edit clicked', task)
+  const updatedText = prompt("Edit your task:", task.text);
+  if (updatedText !== null && updatedText.trim() !== "") {
+    task.text = updatedText.trim();
+  }
+},
+      searchTasks() {
+        if (this.searchQuery.trim() === "") {
+          alert("Please enter a search term.");
+          return;
+        }
+        const found = this.tasks.some(task => task.text.toLowerCase().includes(this.searchQuery.trim().toLowerCase()));
+        if (found) {
+          alert("Task found!");
+        } else {
+          alert("No matching task found.");
+        }
+      },
+      mounted(){
+        const storedTasks = localStorage.getItem('tasks');
+        if(storedTasks){
+          this.tasks = JSON.parse(storedTasks)
+        }
+        localStorage.removeItem('tasks')
+      },
+      watch:{
+        tasks:{
+          handler(newTasks){
+            localStorage.setItem('tasks',JSON.stringify(newTasks));
+          },
+          deep:true
+        }
+      }
+    }
+});
+  app.mount('#app');
+</script>
+</html>
